@@ -155,6 +155,11 @@
   }
 }
 
+/* Reveal: hidden only when JS is running, until scrolled into view. */
+.js [data-reveal='wait'] {
+  opacity: 0;
+}
+
 /* Images fade in as they load (components/Img.tsx). */
 .img-fade {
   opacity: 0;
@@ -162,4 +167,11 @@
 }
 .img-fade[data-loaded='true'] {
   opacity: 1;
+}
+
+/* Room for the mobile sticky add-to-bag bar so it never covers the footer. */
+@media (max-width: 1023px) {
+  body:has(.sticky-buy) {
+    padding-bottom: 76px;
+  }
 }

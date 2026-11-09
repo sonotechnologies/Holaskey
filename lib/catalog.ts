@@ -1,4 +1,5 @@
 import 'server-only';
+import { unstable_cache } from 'next/cache';
 import { cache } from 'react';
 import { DEMO_CATEGORIES, DEMO_PRODUCTS } from './demo';
 import { hasSupabase } from './env';
@@ -29,39 +30,46 @@ export const DEFAULT_SETTINGS: Settings = {
   hero_images: [],
 };
 
-export const getSettings = cache(async (): Promise<Settings> => {
-  if (!hasSupabase) return DEFAULT_SETTINGS;
-  const { data } = await createPublicClient().from('settings').select('*').limit(1).maybeSingle();
-  return data ? { ...DEFAULT_SETTINGS, ...data } : DEFAULT_SETTINGS;
-});
+// Public catalogue reads are cached across requests (60 s) and refreshed instantly when
+// the admin saves (revalidateTag('catalog')).
+const CACHE = { revalidate: 60, tags: ['catalog'] };
 
-export const getCategories = cache(async (): Promise<Category[]> => {
-  if (!hasSupabase) return DEMO_CATEGORIES;
-  const { data } = await createPublicClient().from('categories').select('*').order('sort');
-  return (data as Category[]) ?? [];
-});
+const fetchSettings = unstable_cache(
+  async (): Promise<Settings> => {
+    const { data } = await createPublicClient().from('settings').select('*').limit(1).maybeSingle();
+    return data ? { ...DEFAULT_SETTINGS, ...data } : DEFAULT_SETTINGS;
+  },
+  ['settings'],
+  CACHE,
+);
 
-export const getProducts = cache(async (): Promise<Product[]> => {
-  if (!hasSupabase) return DEMO_PRODUCTS;
-  const { data, error } = await createPublicClient()
-    .from('products')
-    .select(PRODUCT_SELECT)
-    .eq('status', 'active')
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return (data ?? []).map(normalise);
-});
+const fetchCategories = unstable_cache(
+  async (): Promise<Category[]> => {
+    const { data } = await createPublicClient().from('categories').select('*').order('sort');
+    return (data as Category[]) ?? [];
+  },
+  ['categories'],
+  CACHE,
+);
 
-export const getProduct = cache(async (slug: string): Promise<Product | null> => {
-  if (!hasSupabase) return DEMO_PRODUCTS.find((p) => p.slug === slug) ?? null;
-  const { data } = await createPublicClient()
-    .from('products')
-    .select(PRODUCT_SELECT)
-    .eq('slug', slug)
-    .eq('status', 'active')
-    .maybeSingle();
-  return data ? normalise(data) : null;
-});
+const fetchProducts = unstable_cache(
+  async (): Promise<Product[]> => {
+    const { data, error } = await createPublicClient()
+      .from('products')
+      .select(PRODUCT_SELECT)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map(normalise);
+  },
+  ['products'],
+  CACHE,
+);
+
+export const getSettings = cache(async (): Promise<Settings> => (hasSupabase ? fetchSettings() : DEFAULT_SETTINGS));
+export const getCategories = cache(async (): Promise<Category[]> => (hasSupabase ? fetchCategories() : DEMO_CATEGORIES));
+export const getProducts = cache(async (): Promise<Product[]> => (hasSupabase ? fetchProducts() : DEMO_PRODUCTS));
+export const getProduct = cache(async (slug: string): Promise<Product | null> => (await getProducts()).find((p) => p.slug === slug) ?? null);
 
 /** Admin: every product including archived (uses the session; RLS lets admins see them). */
 export async function getProductsForAdmin(): Promise<Product[]> {

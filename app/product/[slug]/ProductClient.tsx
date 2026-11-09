@@ -168,7 +168,7 @@ export function ProductBuy({ productId, slug, title, price, variants, wished: in
         )}
 
         {/* Mobile: sticky add-to-bag bar with selected size and price */}
-        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-line bg-bg px-4 py-3 lg:hidden">
+        <div className="sticky-buy fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-line bg-bg px-4 py-3 lg:hidden">
           <div className="flex min-w-0 flex-col leading-tight">
             <span className="label-sm text-muted">{selected ? `Size ${selected.size}` : 'Select a size'}</span>
             <span className="font-semibold">{naira(price)}</span>

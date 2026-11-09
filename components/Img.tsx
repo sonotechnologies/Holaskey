@@ -3,11 +3,12 @@ import Image, { type ImageProps } from 'next/image';
 import { useState } from 'react';
 
 /** next/image that fades in once loaded (brief: "images fade in as they load"). */
-export function Img({ className = '', ...props }: ImageProps) {
+export function Img({ className = '', alt, ...props }: ImageProps) {
   const [loaded, setLoaded] = useState(false);
   return (
     <Image
       {...props}
+      alt={alt}
       className={`img-fade ${className}`}
       data-loaded={loaded}
       onLoad={() => setLoaded(true)}

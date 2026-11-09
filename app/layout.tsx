@@ -9,7 +9,7 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-inter', display: 'swap' });
 const archivo = Archivo({ subsets: ['latin'], axes: ['wdth'], variable: '--font-archivo', display: 'swap' });
-const bodoni = Bodoni_Moda({ subsets: ['latin'], style: ['italic'], weight: ['500'], variable: '--font-bodoni', display: 'swap' });
+const bodoni = Bodoni_Moda({ subsets: ['latin'], style: ['italic'], weight: ['500'], variable: '--font-bodoni', display: 'swap', adjustFontFallback: false });
 const plex = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-plex', display: 'swap' });
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 };
 
 // Sets the saved theme before first paint (dark is the default).
-const themeScript = `try{var t=localStorage.getItem('hk-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;
+const themeScript = `document.documentElement.classList.add('js');try{var t=localStorage.getItem('hk-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSettings();

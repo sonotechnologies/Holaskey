@@ -44,7 +44,7 @@ export default async function Home() {
             View all
           </Link>
         </div>
-        <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 md:px-8 lg:gap-6 xl:px-[max(60px,calc((100vw-1320px)/2))]">
+        <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 md:px-8 lg:gap-6 xl:px-[max(60px,calc((100vw_-_1320px)/2))]">
           {newIn.map((p) => (
             <div key={p.id} className="w-[clamp(230px,21vw,300px)] flex-none snap-start">
               <ProductCard p={toCard(p, wish)} sizes="300px" />
