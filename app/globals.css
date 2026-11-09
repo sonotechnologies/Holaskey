@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Colour tokens as RGB channels so Tailwind can apply opacity. */
+:root,
+[data-theme='dark'] {
+  --hk-bg: 18 13 10; /* onyx #120D0A */
+  --hk-ink: 243 236 226; /* bone #F3ECE2 */
+  --hk-ink2: 226 214 198;
+  --hk-accent: 181 96 58; /* terracotta #B5603A */
+  --hk-s0: 11 9 7;
+  --hk-s1: 30 24 20; /* smoke #1E1814 */
+  --hk-s2: 37 30 25;
+  --hk-s3: 43 29 20; /* espresso #2B1D14 */
+  --hk-s4: 90 59 40;
+  --hk-line: 58 45 36; /* #3A2D24 */
+  --hk-muted: 156 143 130; /* ash #9C8F82 */
+  --hk-err: 210 85 63; /* #D2553F */
+  --hk-ok: 94 155 110; /* #5E9B6E */
+  --hk-logo: none;
+  color-scheme: dark;
+}
+[data-theme='light'] {
+  --hk-bg: 244 238 230;
+  --hk-ink: 30 22 18;
+  --hk-ink2: 58 45 36;
+  --hk-accent: 158 74 38;
+  --hk-s0: 239 232 222;
+  --hk-s1: 233 225 214;
+  --hk-s2: 226 216 203;
+  --hk-s3: 234 219 203;
+  --hk-s4: 205 180 157;
+  --hk-line: 214 201 185;
+  --hk-muted: 107 95 84;
+  --hk-err: 179 58 37;
+  --hk-ok: 62 120 78;
+  --hk-logo: brightness(0.12);
+  color-scheme: light;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-bg font-sans text-base text-ink antialiased;
+    line-height: 1.6;
+  }
+  a {
+    @apply text-ink no-underline underline-offset-4;
+  }
+  a:hover {
+    @apply text-accent underline;
+  }
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+  }
+  ::placeholder {
+    color: rgb(var(--hk-muted) / 0.85);
+  }
+  *:focus-visible {
+    outline: 2px solid rgb(var(--hk-accent));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .wrap {
+    @apply mx-auto w-full px-4 md:px-8 xl:px-[60px];
+    max-width: calc(1320px + 120px);
+  }
+  .logo {
+    filter: var(--hk-logo);
+  }
+  .label {
+    @apply font-mono text-xs font-medium uppercase tracking-[0.12em];
+  }
+  .label-sm {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.12em];
+  }
+  .display {
+    @apply font-display font-extrabold uppercase;
+    font-stretch: 75%;
+    letter-spacing: -0.01em;
+    line-height: 0.9;
+    font-size: clamp(48px, 6.1vw, 88px);
+    text-wrap: balance;
+  }
+  .h1 {
+    @apply font-display font-bold uppercase leading-none;
+    font-size: clamp(32px, 3.33vw, 48px);
+    text-wrap: balance;
+  }
+  .h2 {
+    @apply font-display font-bold uppercase leading-tight;
+    font-size: clamp(22px, 1.95vw, 28px);
+  }
+  .accent-word {
+    @apply font-serif font-medium italic leading-none;
+    font-size: clamp(28px, 2.8vw, 40px);
+  }
+  .btn {
+    @apply inline-flex h-12 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap border px-7 font-mono text-xs font-medium uppercase tracking-[0.12em] no-underline transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn border-ink bg-ink text-bg hover:border-ink2 hover:bg-ink2 hover:text-bg hover:no-underline;
+  }
+  .btn-secondary {
+    @apply btn border-ink bg-transparent text-ink hover:border-accent hover:text-ink hover:no-underline;
+  }
+  .link {
+    @apply cursor-pointer bg-transparent p-0 text-sm text-ink underline underline-offset-[3px] hover:text-accent;
+  }
+  .field {
+    @apply h-12 w-full min-w-0 rounded-none border border-line bg-smoke px-3.5 text-base text-ink outline-none transition-colors focus:border-ink;
+  }
+  textarea.field {
+    @apply h-auto py-3 leading-relaxed;
+  }
+  .field-label {
+    @apply mb-1.5 block font-mono text-xs font-medium uppercase tracking-[0.12em];
+  }
+  .chip {
+    @apply inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 border border-line bg-transparent px-3 font-mono text-xs font-medium uppercase tracking-[0.06em] text-ink transition-colors hover:border-ink;
+  }
+  .chip-on {
+    @apply border-ink bg-ink text-bg hover:border-ink;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes rise {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes sign {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .motion-zoom:hover {
+    transform: none !important;
+  }
+}
+
+/* Reveal: hidden only when JS is running, until scrolled into view. */
+.js [data-reveal='wait'] {
+  opacity: 0;
+}
+
+/* Images fade in as they load (components/Img.tsx). */
+.img-fade {
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+.img-fade[data-loaded='true'] {
+  opacity: 1;
+}
+
+/* Room for the mobile sticky add-to-bag bar so it never covers the footer. */
+@media (max-width: 1023px) {
+  body:has(.sticky-buy) {
+    padding-bottom: 76px;
+  }
+}
