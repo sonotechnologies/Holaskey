@@ -37,8 +37,8 @@ Without Supabase keys the site still runs. It shows the sample catalogue from `l
 | Name | What |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | Public URL, used in Paystack callbacks, emails and the sitemap |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server only: webhook, order creation, checked state changes |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase project (the legacy `..._ANON_KEY` name also works) |
+| `SUPABASE_SECRET_KEY` | Server only: webhook, order creation, checked state changes (legacy `SUPABASE_SERVICE_ROLE_KEY` also works) |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY` | Paystack |
 | `RESEND_API_KEY`, `EMAIL_FROM`, `OWNER_EMAIL` | Transactional email; the owner gets new-order and new-request alerts |
 | `CRON_SECRET` | Protects `/api/cron/daily` (Vercel Cron sends it automatically) |

@@ -1,7 +1,8 @@
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Supabase's newer "publishable" key replaces the legacy "anon" key; either name works.
+export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 /** True once Supabase env vars are set. Without them the site runs on sample data, read-only. */
 export const hasSupabase = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);

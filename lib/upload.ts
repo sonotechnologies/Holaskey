@@ -1,4 +1,5 @@
 'use client';
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from './env';
 import { getBrowserClient } from './supabase/client';
 
 /** Uploads a file straight to Supabase Storage with real progress (XHR), as the signed-in user. */
@@ -8,12 +9,12 @@ export async function uploadWithProgress(bucket: string, path: string, file: Fil
     data: { session },
   } = await supabase.auth.getSession();
   if (!session) throw new Error('You need to be logged in to upload photos.');
-  const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`;
+  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${path.split('/').map(encodeURIComponent).join('/')}`;
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url);
     xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
-    xhr.setRequestHeader('apikey', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
     xhr.setRequestHeader('x-upsert', 'false');
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
     xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));

@@ -33,7 +33,8 @@ export function createPublicClient(): SupabaseClient {
  * who is calling (webhooks, order creation, state changes the customer is allowed to make).
  */
 export function createServiceClient(): SupabaseClient {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
+  // Supabase's newer "secret" key replaces the legacy "service_role" key; either name works.
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error('SUPABASE_SECRET_KEY is not set');
   return createPlainClient(SUPABASE_URL, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
