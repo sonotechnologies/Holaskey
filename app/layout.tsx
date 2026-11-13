@@ -5,6 +5,7 @@ import { Footer } from '@/components/Footer';
 import { BackToTop } from '@/components/BackToTop';
 import { Header } from '@/components/Header';
 import { NavProgress } from '@/components/NavProgress';
+import { Toaster } from '@/components/Toaster';
 import { getSettings } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/env';
 import './globals.css';
@@ -61,6 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div id="main">{children}</div>
         <Footer />
         <BackToTop />
+        <Toaster />
       </body>
     </html>
   );

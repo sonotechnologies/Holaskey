@@ -2,6 +2,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useEffect, useRef, useState, useTransition, type ReactNode } from 'react';
 import { CloseIcon, FilterIcon } from '@/components/icons';
+import { Portal } from '@/components/Portal';
 
 export interface FilterGroup {
   key: string;
@@ -206,6 +207,7 @@ export function ShopToolbar({ groups, chips, count }: { groups: FilterGroup[]; c
       </div>
 
       {open && (
+        <Portal>
         <div className="fixed inset-0 z-50 flex flex-col justify-end lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
           <button type="button" aria-label="Close filters" className="absolute inset-0 bg-bg/70" onClick={() => setOpen(false)} />
           <div className="relative flex max-h-[85vh] flex-col border-t border-line bg-bg animate-rise">
@@ -228,6 +230,7 @@ export function ShopToolbar({ groups, chips, count }: { groups: FilterGroup[]; c
             </div>
           </div>
         </div>
+        </Portal>
       )}
     </>
   );

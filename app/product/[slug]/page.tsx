@@ -7,6 +7,7 @@ import { getProduct, getProducts, getSettings, isSoldOut } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/env';
 import { naira } from '@/lib/format';
 import { productImageUrl } from '@/lib/images';
+import { RecentlyViewed, RecordView } from '@/components/RecentlyViewed';
 import { Gallery, ProductBuy } from './ProductClient';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function ProductPage({ params }: { params: { slug: string } }) {
+export default async function ProductPage({ params, searchParams }: { params: { slug: string }; searchParams: { v?: string } }) {
   const [p, all, settings, wish] = await Promise.all([getProduct(params.slug), getProducts(), getSettings(), getWishIds()]);
   if (!p) notFound();
 
@@ -55,6 +56,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
   return (
     <main className="wrap pb-24 pt-4 lg:pt-8 animate-rise">
+      <RecordView slug={p.slug} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
       <nav aria-label="Breadcrumb" className="label-sm mb-4 flex gap-2 text-muted lg:mb-6">
         <Link href="/shop" className="text-muted">
@@ -90,6 +92,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
             slug={p.slug}
             title={p.title}
             price={p.price}
+            image={productImageUrl(p.images[0]?.path)}
+            initialVariant={searchParams.v}
+            whatsapp={settings.whatsapp}
             variants={p.variants}
             wished={wish.has(p.id)}
             shoe={shoe}
@@ -129,6 +134,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
           </section>
         ) : null,
       )}
+      <RecentlyViewed exclude={p.slug} className="pt-16 lg:pt-24" />
     </main>
   );
 }

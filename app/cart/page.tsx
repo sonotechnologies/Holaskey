@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Img, PhotoPlaceholder } from '@/components/Img';
+import { RecentlyViewed } from '@/components/RecentlyViewed';
 import { requireViewer } from '@/lib/auth';
 import { getCart } from '@/lib/cart';
 import { naira } from '@/lib/format';
@@ -28,6 +29,7 @@ export default async function CartPage() {
           <Link href="/shop?new=1" className="btn-primary">
             Shop New In
           </Link>
+          <RecentlyViewed className="mt-10 w-full" />
         </div>
       ) : (
         <div className="flex flex-wrap items-start gap-8 lg:gap-16">
