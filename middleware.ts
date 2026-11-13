@@ -38,5 +38,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|img/|api/paystack|icon.png|apple-icon.png|.*\\.(?:png|jpg|jpeg|svg|webp|avif)$).*)'],
+  matcher: ['/((?!_next/static|_next/image|img/|og|api/paystack|api/search|api/cards|icon.png|apple-icon.png|.*\\.(?:png|jpg|jpeg|svg|webp|avif)$).*)'],
 };

@@ -1,9 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MeasureDiagram } from '@/components/MeasureFields';
+import { shareMeta } from '@/lib/og';
 import { BOTTOMS, SHOES, SizeTable as Table, TOPS } from '@/components/SizeCharts';
 
-export const metadata: Metadata = { title: 'Size guide', description: "HOLASKEY men's clothing and shoe size charts.", alternates: { canonical: '/size-guide' } };
+const DESCRIPTION = "Men's clothing and shoe size charts — or send your measurements and we'll make it to fit.";
+export const metadata: Metadata = {
+  title: 'Size guide',
+  description: DESCRIPTION,
+  alternates: { canonical: '/size-guide' },
+  ...shareMeta({ title: 'Size guide · HOLASKEY', description: DESCRIPTION, path: '/size-guide', image: '/og?p=size-guide', alt: 'HOLASKEY size guide' }),
+};
 
 export default function SizeGuide() {
   return (

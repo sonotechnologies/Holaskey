@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
 import { getWishIds, toCard } from '@/lib/cards';
+import { shareMeta } from '@/lib/og';
 import { searchProducts } from '@/lib/search';
 import { filterProducts, getCategories, getProducts, PRICE_BANDS, type ShopFilters } from '@/lib/catalog';
 import { FilterAside, ShopProvider, ShopResults, ShopToolbar, type FilterGroup } from './ShopControls';
@@ -13,10 +14,16 @@ export async function generateMetadata({ searchParams }: { searchParams: SP }): 
   const cats = await getCategories();
   const one = list(searchParams.cat);
   const c = one.length === 1 ? cats.find((x) => x.slug === one[0]) : null;
+  const title = c ? c.name : searchParams.new ? 'New In' : 'Shop';
+  const description = c
+    ? `${c.name} from HOLASKEY, cut in Lagos. Flat delivery anywhere in Nigeria.`
+    : 'Shirts, tees, cargos, denim, jackets, sets, sneakers and loafers. Flat delivery anywhere in Nigeria.';
+  const path = c ? `/shop?cat=${c.slug}` : '/shop';
   return {
-    title: c ? c.name : searchParams.new ? 'New In' : 'Shop',
-    description: c ? `Shop ${c.name.toLowerCase()} at HOLASKEY.` : 'Shop every HOLASKEY piece.',
-    alternates: { canonical: c ? `/shop?cat=${c.slug}` : '/shop' },
+    title,
+    description,
+    alternates: { canonical: path },
+    ...shareMeta({ title: `${title} · HOLASKEY`, description, path, image: '/og?p=shop', alt: 'Shop HOLASKEY' }),
   };
 }
 

@@ -5,13 +5,16 @@ import { getViewer } from '@/lib/auth';
 import { getProduct } from '@/lib/catalog';
 import { hasSupabase } from '@/lib/env';
 import { createClient } from '@/lib/supabase/server';
+import { shareMeta } from '@/lib/og';
 import type { Measurements } from '@/lib/types';
 import { CustomForm } from './CustomForm';
 
+const DESCRIPTION = 'Seen it somewhere? Send us the pic — we make it in your size. Clothing and shoes, quoted within 48 hours.';
 export const metadata: Metadata = {
   title: 'Custom orders',
-  description: 'Seen it somewhere? Send the pic. HOLASKEY makes it in your size — clothing and shoes, quoted within 48 hours.',
+  description: DESCRIPTION,
   alternates: { canonical: '/custom' },
+  ...shareMeta({ title: "Send the pic. We'll make it. · HOLASKEY", description: DESCRIPTION, path: '/custom', image: '/og?p=custom', alt: "HOLASKEY custom orders — send the pic, we'll make it" }),
 };
 
 export default async function CustomPage({ searchParams }: { searchParams: { product?: string } }) {

@@ -15,13 +15,23 @@ const archivo = Archivo({ subsets: ['latin'], axes: ['wdth'], variable: '--font-
 const bodoni = Bodoni_Moda({ subsets: ['latin'], style: ['italic'], weight: ['500'], variable: '--font-bodoni', display: 'swap', adjustFontFallback: false });
 const plex = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-plex', display: 'swap' });
 
+const DESCRIPTION = "Luxury menswear from Lagos. Shop the new drop, or send a pic and we'll make it in your size.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: 'HOLASKEY — Luxury menswear, Lagos', template: '%s · HOLASKEY' },
-  description:
-    'Designer-level menswear for young Nigerian men: tailored shirts, premium tees, cargos, denim, jackets, sets, sneakers and loafers. Custom orders made to your size.',
-  openGraph: { siteName: 'HOLASKEY', type: 'website', locale: 'en_NG', images: ['/img/hero.jpg'] },
-  twitter: { card: 'summary_large_image' },
+  description: DESCRIPTION,
+  applicationName: 'HOLASKEY',
+  openGraph: {
+    siteName: 'HOLASKEY',
+    type: 'website',
+    locale: 'en_NG',
+    url: '/',
+    title: 'HOLASKEY — Luxury menswear, Lagos',
+    description: DESCRIPTION,
+    images: [{ url: '/og?p=home', width: 1200, height: 630, alt: 'HOLASKEY — Dressed for the moment.', type: 'image/jpeg' }],
+  },
+  twitter: { card: 'summary_large_image', title: 'HOLASKEY — Luxury menswear, Lagos', description: DESCRIPTION, images: ['/og?p=home'] },
   appleWebApp: { capable: true, title: 'HOLASKEY', statusBarStyle: 'black-translucent' },
 };
 

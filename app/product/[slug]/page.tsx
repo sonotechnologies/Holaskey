@@ -7,18 +7,20 @@ import { getProduct, getProducts, getSettings, isSoldOut } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/env';
 import { naira } from '@/lib/format';
 import { productImageUrl } from '@/lib/images';
+import { shareMeta } from '@/lib/og';
 import { RecentlyViewed, RecordView } from '@/components/RecentlyViewed';
 import { Gallery, ProductBuy } from './ProductClient';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const p = await getProduct(params.slug);
   if (!p) return { title: 'Not found' };
-  const img = productImageUrl(p.images[0]?.path);
+  const description = `${naira(p.price)} · ${p.category?.name ?? 'HOLASKEY'}. ${p.description}`.slice(0, 155);
+  const path = `/product/${p.slug}`;
   return {
     title: p.title,
-    description: `${p.title} — ${naira(p.price)}. ${p.description}`.slice(0, 160),
-    alternates: { canonical: `/product/${p.slug}` },
-    openGraph: { title: `${p.title} · HOLASKEY`, images: img ? [{ url: img, alt: p.images[0]?.alt || p.title }] : undefined },
+    description,
+    alternates: { canonical: path },
+    ...shareMeta({ title: `${p.title} — ${naira(p.price)}`, description, path, image: `/og?p=product&slug=${encodeURIComponent(p.slug)}`, alt: p.images[0]?.alt || p.title }),
   };
 }
 
