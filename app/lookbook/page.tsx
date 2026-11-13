@@ -5,8 +5,15 @@ import { Reveal } from '@/components/Reveal';
 import { getProducts } from '@/lib/catalog';
 import { DEMO_LOOKS } from '@/lib/demo';
 import { naira } from '@/lib/format';
+import { shareMeta } from '@/lib/og';
 
-export const metadata: Metadata = { title: 'Lookbook', description: 'HOLASKEY Lookbook, Season 04: after dark.', alternates: { canonical: '/lookbook' } };
+const DESCRIPTION = 'Season 04: after dark. Three looks from HOLASKEY — shop every piece.';
+export const metadata: Metadata = {
+  title: 'Lookbook',
+  description: DESCRIPTION,
+  alternates: { canonical: '/lookbook' },
+  ...shareMeta({ title: 'The looks · HOLASKEY', description: DESCRIPTION, path: '/lookbook', image: '/og?p=lookbook', alt: 'HOLASKEY Lookbook — after dark' }),
+};
 
 export default async function Lookbook() {
   const products = await getProducts();

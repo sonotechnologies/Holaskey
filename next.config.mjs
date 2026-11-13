@@ -15,7 +15,11 @@ const nextConfig = {
       : [],
   },
   experimental: {
-    serverActions: { bodySizeLimit: '45mb' },
+    serverActions: { bodySizeLimit: '10mb' },
+    // Files the link-preview image route reads at runtime.
+    outputFileTracingIncludes: {
+      '/og': ['./lib/og-fonts/**', './public/img/**', './public/wordmark-bone.png', './public/signature.png'],
+    },
   },
 };
 

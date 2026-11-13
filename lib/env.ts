@@ -1,4 +1,7 @@
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
+// Public address of the site. On Vercel it falls back to the project's production domain,
+// so link previews (WhatsApp, Instagram, X) never point at localhost.
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || (vercelHost ? `https://${vercelHost}` : 'http://localhost:3000')).replace(/\/$/, '');
 
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 // Supabase's newer "publishable" key replaces the legacy "anon" key; either name works.
