@@ -30,6 +30,8 @@ const config: Config = {
         serif: ['var(--font-bodoni)', 'Georgia', 'serif'],
         mono: ['var(--font-plex)', 'ui-monospace', 'monospace'],
       },
+      // Terracotta text uses a slightly lighter tone so small labels pass WCAG AA.
+      textColor: { accent: v('accent-text') },
       borderRadius: { none: '0', DEFAULT: '0', sm: '2px' },
       maxWidth: { site: '1320px' },
       keyframes: {

@@ -1,8 +1,9 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { removeCartItem, setCartQty } from '@/app/actions/shop';
+import { removeCartItem, restoreCartItem, setCartQty } from '@/app/actions/shop';
+import { toast } from '@/components/Toaster';
 
-export function QtyControl({ id, qty, max, title }: { id: string; qty: number; max: number; title: string }) {
+export function QtyControl({ id, qty, max, title, variantId }: { id: string; qty: number; max: number; title: string; variantId: string }) {
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState('');
   const set = (n: number) =>
@@ -23,7 +24,26 @@ export function QtyControl({ id, qty, max, title }: { id: string; qty: number; m
           +
         </button>
       </div>
-      <button type="button" disabled={pending} onClick={() => start(() => removeCartItem(id))} className="link h-10">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() =>
+          start(async () => {
+            await removeCartItem(id);
+            toast({
+              message: `${title} removed`,
+              action: {
+                label: 'Undo',
+                onClick: () =>
+                  restoreCartItem(variantId, qty).then((r) => {
+                    if (!r.ok) toast({ message: r.error, tone: 'error' });
+                  }),
+              },
+            });
+          })
+        }
+        className="link h-10"
+      >
         Remove
       </button>
       {msg && <span className="text-sm text-muted">{msg}</span>}

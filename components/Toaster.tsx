@@ -6,7 +6,7 @@ import { CloseIcon } from './icons';
 export interface ToastInput {
   message: string;
   tone?: 'default' | 'error';
-  action?: { label: string; href: string };
+  action?: { label: string; href?: string; onClick?: () => void };
   duration?: number;
 }
 interface Toast extends ToastInput {
@@ -41,10 +41,22 @@ export function Toaster() {
         >
           {t.tone === 'error' && <span className="label text-err">Error</span>}
           <span className="min-w-0 flex-1 py-1.5">{t.message}</span>
-          {t.action && (
+          {t.action?.href && (
             <Link href={t.action.href} className="label flex-none px-2 underline underline-offset-4">
               {t.action.label}
             </Link>
+          )}
+          {t.action?.onClick && (
+            <button
+              type="button"
+              onClick={() => {
+                t.action!.onClick!();
+                setList((l) => l.filter((x) => x.id !== t.id));
+              }}
+              className="label flex-none px-2 underline underline-offset-4"
+            >
+              {t.action.label}
+            </button>
           )}
           <button type="button" aria-label="Dismiss" onClick={() => setList((l) => l.filter((x) => x.id !== t.id))} className="flex h-10 w-10 flex-none items-center justify-center text-muted hover:text-ink">
             <CloseIcon size={16} />

@@ -94,7 +94,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   moreParams.set('show', String(shown + PAGE));
 
   return (
-    <main className="wrap pb-16 pt-6 lg:pb-24 lg:pt-12 animate-rise">
+    <main className="wrap pb-16 pt-6 lg:pb-24 lg:pt-12">
       <div className="mb-2 flex flex-col gap-2">
         <p className="label text-muted">Shop · {count}</p>
         <h1 className="h1">{title}</h1>

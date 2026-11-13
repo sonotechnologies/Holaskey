@@ -55,9 +55,23 @@ export default async function ProductPage({ params, searchParams }: { params: { 
   };
 
   return (
-    <main className="wrap pb-24 pt-4 lg:pt-8 animate-rise">
+    <main className="wrap pb-24 pt-4 lg:pt-8">
       <RecordView slug={p.slug} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Shop', item: `${SITE_URL}/shop` },
+              ...(p.category ? [{ '@type': 'ListItem', position: 2, name: p.category.name, item: `${SITE_URL}/shop?cat=${p.category.slug}` }] : []),
+              { '@type': 'ListItem', position: p.category ? 3 : 2, name: p.title, item: `${SITE_URL}/product/${p.slug}` },
+            ],
+          }).replace(/</g, '\\u003c'),
+        }}
+      />
       <nav aria-label="Breadcrumb" className="label-sm mb-4 flex gap-2 text-muted lg:mb-6">
         <Link href="/shop" className="text-muted">
           Shop

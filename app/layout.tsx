@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     'Designer-level menswear for young Nigerian men: tailored shirts, premium tees, cargos, denim, jackets, sets, sneakers and loafers. Custom orders made to your size.',
   openGraph: { siteName: 'HOLASKEY', type: 'website', locale: 'en_NG', images: ['/img/hero.jpg'] },
   twitter: { card: 'summary_large_image' },
+  appleWebApp: { capable: true, title: 'HOLASKEY', statusBarStyle: 'black-translucent' },
 };
 
 export const viewport: Viewport = {
@@ -44,6 +45,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ClothingStore',
+              name: 'HOLASKEY',
+              url: SITE_URL,
+              logo: `${SITE_URL}/icon-512.png`,
+              image: `${SITE_URL}/img/hero.jpg`,
+              address: { '@type': 'PostalAddress', addressLocality: 'Lagos', addressCountry: 'NG' },
+              currenciesAccepted: 'NGN',
+              sameAs: [settings.instagram].filter(Boolean),
+            }),
+          }}
+        />
       </head>
       <body>
         <NavProgress />
@@ -51,12 +68,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Skip to content
         </a>
         {settings.announcement && (
+          <aside aria-label="Announcement">
           <Link
             href="/custom"
             className="label-sm flex h-8 items-center justify-center overflow-hidden whitespace-nowrap bg-espresso px-4 text-ink hover:text-ink"
           >
             {settings.announcement}
           </Link>
+          </aside>
         )}
         <Header />
         <div id="main">{children}</div>
