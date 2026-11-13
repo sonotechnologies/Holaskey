@@ -19,9 +19,37 @@ interface Summary {
 export function CheckoutForm({ email, emailVerified, name, phone, addresses, summary }: { email: string; emailVerified: boolean; name: string; phone: string; addresses: Address[]; summary: Summary }) {
   const [state, action] = useFormState(startCheckout, null);
   const [sel, setSel] = useState<string>(addresses[0]?.id ?? 'new');
+  const [newState, setNewState] = useState('Lagos');
+  const state_ = sel === 'new' ? newState : addresses.find((a) => a.id === sel)?.state ?? 'Lagos';
+  const eta = deliveryWindow(state_);
 
   return (
     <form action={action} className="flex flex-wrap items-start gap-8 lg:gap-16">
+      {/* Phones: order summary collapsed at the top */}
+      <details className="group w-full border-y border-line lg:hidden">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3">
+          <span className="label flex items-center gap-2">
+            <span className="group-open:hidden">Show order summary</span>
+            <span className="hidden group-open:inline">Hide order summary</span>
+            <span aria-hidden className="transition-transform group-open:rotate-180">⌄</span>
+          </span>
+          <span className="font-semibold">{summary.total}</span>
+        </summary>
+        <div className="flex flex-col gap-3 pb-4">
+          {summary.lines.map((l) => (
+            <div key={l.id} className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-3 text-sm">
+              <div className="relative aspect-[4/5] bg-smoke">{l.image && <Img src={l.image} alt="" fill sizes="48px" className="object-cover" />}</div>
+              <div className="flex flex-col leading-snug">
+                <span className="font-medium">{l.title}</span>
+                <span className="text-muted">
+                  {l.meta} · ×{l.qty}
+                </span>
+              </div>
+              <span className="font-semibold">{l.price}</span>
+            </div>
+          ))}
+        </div>
+      </details>
       <div className="flex min-w-0 flex-[2_1_560px] flex-col gap-10">
         <section className="flex flex-col gap-4">
           <h2 className="h2 !text-[clamp(20px,1.65vw,24px)]">
@@ -75,7 +103,7 @@ export function CheckoutForm({ email, emailVerified, name, phone, addresses, sum
               <Field label="Street address" name="street" autoComplete="street-address" className="sm:col-span-2" required />
               <Field label="Landmark (optional)" name="landmark" placeholder="Opposite the filling station" className="sm:col-span-2" />
               <Field label="City" name="city" autoComplete="address-level2" required />
-              <Select label="State" name="state" defaultValue="Lagos" required>
+              <Select label="State" name="state" value={newState} onChange={(e) => setNewState(e.target.value)} required>
                 {NG_STATES.map((s) => (
                   <option key={s}>{s}</option>
                 ))}
@@ -93,7 +121,14 @@ export function CheckoutForm({ email, emailVerified, name, phone, addresses, sum
             <span className="label mr-3 text-muted">03</span>Delivery
           </h2>
           <div className="flex justify-between gap-4 border border-ink p-4 text-[15px]">
-            <span>Flat delivery · 1–2 days in Lagos, 3–5 days elsewhere</span>
+            <span className="flex flex-col gap-0.5">
+              <span>
+                Flat delivery to {state_} · {eta.days}
+              </span>
+              <span className="text-sm text-muted" aria-live="polite" suppressHydrationWarning>
+                Arrives {eta.range} if you pay today
+              </span>
+            </span>
             <span className="font-semibold">{summary.delivery}</span>
           </div>
         </section>
@@ -133,4 +168,20 @@ export function CheckoutForm({ email, emailVerified, name, phone, addresses, sum
       </aside>
     </form>
   );
+}
+
+/** Working-day delivery window from today (Lagos 1–2 days, elsewhere 3–5). */
+function deliveryWindow(state: string) {
+  const lagos = /lagos/i.test(state);
+  const [min, max] = lagos ? [1, 2] : [3, 5];
+  const add = (n: number) => {
+    const d = new Date();
+    while (n > 0) {
+      d.setDate(d.getDate() + 1);
+      if (d.getDay() !== 0 && d.getDay() !== 6) n--;
+    }
+    return d;
+  };
+  const f = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  return { days: `${min}–${max} working days`, range: `${f(add(min))} – ${f(add(max))}` };
 }

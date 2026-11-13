@@ -29,6 +29,30 @@ export default async function CheckoutPage() {
           ← Back to bag
         </Link>
         <h1 className="h1">Checkout</h1>
+        <ol className="label mt-2 flex items-center gap-2 text-muted" aria-label="Checkout steps">
+          <li className="flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink text-[10px] text-bg" aria-hidden>
+              ✓
+            </span>
+            <Link href="/cart" className="text-muted">
+              Bag
+            </Link>
+          </li>
+          <li aria-hidden className="h-px w-6 bg-line" />
+          <li className="flex items-center gap-2 text-ink" aria-current="step">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-accent text-[10px] text-accent" aria-hidden>
+              2
+            </span>
+            Details
+          </li>
+          <li aria-hidden className="h-px w-6 bg-line" />
+          <li className="flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-muted text-[10px]" aria-hidden>
+              3
+            </span>
+            Payment
+          </li>
+        </ol>
       </div>
       <CheckoutForm
         email={viewer.email}

@@ -89,3 +89,15 @@ export async function toggleWishlist(productId: string, next: string): Promise<{
   revalidatePath('/account/wishlist');
   return { wished: !existing };
 }
+
+/** Puts a just-removed line back (the "Undo" in the bag). Quantity is capped at current stock. */
+export async function restoreCartItem(variantId: string, qty: number): Promise<ActionResult> {
+  const viewer = await getViewer();
+  if (!viewer) loginRedirect('/cart');
+  const supabase = createClient();
+  const { data: v } = await supabase.from('product_variants').select('stock').eq('id', variantId).maybeSingle();
+  if (!v || v.stock < 1) return { ok: false, error: 'That size has just sold out.' };
+  await supabase.from('cart_items').upsert({ user_id: viewer.id, variant_id: variantId, qty: Math.min(qty, v.stock) }, { onConflict: 'user_id,variant_id' });
+  revalidatePath('/', 'layout');
+  return { ok: true };
+}

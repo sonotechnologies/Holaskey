@@ -5,15 +5,10 @@ import { useState } from 'react';
 /** next/image that fades in once loaded (brief: "images fade in as they load"). */
 export function Img({ className = '', alt, ...props }: ImageProps) {
   const [loaded, setLoaded] = useState(false);
-  return (
-    <Image
-      {...props}
-      alt={alt}
-      className={`img-fade ${className}`}
-      data-loaded={loaded}
-      onLoad={() => setLoaded(true)}
-    />
-  );
+  // Above-the-fold (priority) images paint immediately: fading them in would wait for
+  // JavaScript and delay the largest contentful paint.
+  if (props.priority) return <Image {...props} alt={alt} className={className} />;
+  return <Image {...props} alt={alt} className={`img-fade ${className}`} data-loaded={loaded} onLoad={() => setLoaded(true)} />;
 }
 
 /** Plain dark placeholder used when an item has no photo yet. */

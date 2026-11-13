@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Img, PhotoPlaceholder } from '@/components/Img';
+import { ProductCard } from '@/components/ProductCard';
 import { RecentlyViewed } from '@/components/RecentlyViewed';
+import { getWishIds, toCard } from '@/lib/cards';
+import { getProducts, isSoldOut } from '@/lib/catalog';
 import { requireViewer } from '@/lib/auth';
 import { getCart } from '@/lib/cart';
 import { naira } from '@/lib/format';
@@ -12,7 +15,14 @@ export const metadata: Metadata = { title: 'Bag', robots: { index: false } };
 
 export default async function CartPage() {
   const viewer = await requireViewer('/cart');
-  const cart = await getCart(viewer.id);
+  const [cart, products, wish] = await Promise.all([getCart(viewer.id), getProducts(), getWishIds()]);
+  // Suggest pieces from other categories than what's already in the bag.
+  const inBag = new Set(cart.lines.map((l) => l.productId));
+  const bagCats = new Set(products.filter((p) => inBag.has(p.id)).map((p) => p.category?.id));
+  const suggestions = products
+    .filter((p) => !inBag.has(p.id) && !isSoldOut(p))
+    .sort((a, b) => Number(bagCats.has(a.category?.id)) - Number(bagCats.has(b.category?.id)))
+    .slice(0, 4);
 
   return (
     <main className="wrap pb-16 pt-6 lg:pb-24 lg:pt-12 animate-rise">
@@ -57,7 +67,7 @@ export default async function CartPage() {
                       </p>
                     )}
                     <div className="mt-auto pt-2">
-                      <QtyControl id={l.id} qty={l.qty} max={l.stock} title={l.title} />
+                      <QtyControl id={l.id} qty={l.qty} max={l.stock} title={l.title} variantId={l.variantId} />
                     </div>
                   </div>
                   <span className="font-semibold">{naira(l.unitPrice * l.qty)}</span>
@@ -92,6 +102,16 @@ export default async function CartPage() {
             )}
           </aside>
         </div>
+      )}
+      {cart.lines.length > 0 && suggestions.length > 0 && (
+        <section className="pt-16 lg:pt-24">
+          <h2 className="h2 mb-6">Complete the look</h2>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-4 lg:gap-6">
+            {suggestions.map((p) => (
+              <ProductCard key={p.id} p={toCard(p, wish)} />
+            ))}
+          </div>
+        </section>
       )}
     </main>
   );

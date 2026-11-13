@@ -8,7 +8,8 @@
   --hk-bg: 18 13 10; /* onyx #120D0A */
   --hk-ink: 243 236 226; /* bone #F3ECE2 */
   --hk-ink2: 226 214 198;
-  --hk-accent: 181 96 58; /* terracotta #B5603A */
+  --hk-accent: 181 96 58; /* terracotta #B5603A — rules, dots, fills */
+  --hk-accent-text: 200 116 76; /* #C8744C — small terracotta text, AA on onyx/smoke/espresso */
   --hk-s0: 11 9 7;
   --hk-s1: 30 24 20; /* smoke #1E1814 */
   --hk-s2: 37 30 25;
@@ -26,6 +27,7 @@
   --hk-ink: 30 22 18;
   --hk-ink2: 58 45 36;
   --hk-accent: 158 74 38;
+  --hk-accent-text: 148 68 34;
   --hk-s0: 239 232 222;
   --hk-s1: 233 225 214;
   --hk-s2: 226 216 203;
