@@ -174,7 +174,8 @@
   body:has(.sticky-buy) {
     padding-bottom: 76px;
   }
-  body:has(.sticky-buy) .back-to-top {
+  body:has(.sticky-buy) .back-to-top,
+  body:has(.sticky-buy) .toaster {
     bottom: 88px;
   }
 }
@@ -208,5 +209,15 @@
 @media (prefers-reduced-motion: reduce) {
   .skeleton::after {
     animation: none;
+  }
+}
+
+@keyframes nudge {
+  0%, 100% { transform: none; }
+  50% { transform: translateX(6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @keyframes nudge {
+    0%, 100% { transform: none; }
   }
 }

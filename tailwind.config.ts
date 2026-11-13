@@ -38,8 +38,8 @@ const config: Config = {
         load: { from: { transform: 'translateX(-100%)' }, to: { transform: 'translateX(250%)' } },
       },
       animation: {
-        rise: 'rise .4s ease-out both',
-        sign: 'sign 1.2s ease-out .3s both',
+        rise: 'rise .4s ease-out backwards',
+        sign: 'sign 1.2s ease-out .3s backwards',
         load: 'load 1s ease-in-out infinite',
       },
     },

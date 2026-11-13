@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Img } from '@/components/Img';
 import { ProductCard } from '@/components/ProductCard';
+import { RecentlyViewed } from '@/components/RecentlyViewed';
 import { Reveal } from '@/components/Reveal';
 import { Signature } from '@/components/Signature';
 import { getWishIds, toCard } from '@/lib/cards';
@@ -108,6 +109,10 @@ export default async function Home() {
           </div>
         </div>
       </Reveal>
+
+      <div className="wrap pt-16 lg:pt-24 empty:hidden">
+        <RecentlyViewed title="Pick up where you left off" />
+      </div>
 
       {/* Lookbook strip */}
       <Reveal className="wrap pt-16 lg:pt-24">

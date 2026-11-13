@@ -7,6 +7,7 @@ import { naira } from '@/lib/format';
 import { productImageUrl } from '@/lib/images';
 import { HeartIcon } from './icons';
 import { Img, PhotoPlaceholder } from './Img';
+import { toast } from './Toaster';
 
 export interface CardProduct {
   id: string;
@@ -26,7 +27,6 @@ export interface CardProduct {
 export function ProductCard({ p, sizes = '(max-width: 768px) 50vw, 25vw', priority = false }: { p: CardProduct; sizes?: string; priority?: boolean }) {
   const [wished, setWished] = useState(p.wished);
   const [pending, start] = useTransition();
-  const [msg, setMsg] = useState('');
   const path = usePathname();
   const img = productImageUrl(p.img);
   const img2 = productImageUrl(p.img2);
@@ -68,19 +68,16 @@ export function ProductCard({ p, sizes = '(max-width: 768px) 50vw, 25vw', priori
         onClick={() =>
           start(async () => {
             const r = await toggleWishlist(p.id, path);
-            if ('wished' in r) setWished(r.wished);
-            else setMsg(r.error);
+            if ('wished' in r) {
+              setWished(r.wished);
+              toast(r.wished ? { message: `${p.title} saved to your wishlist`, action: { label: 'View', href: '/account/wishlist' } } : `${p.title} removed from your wishlist`);
+            } else toast({ message: r.error, tone: 'error' });
           })
         }
         className={`absolute right-0.5 top-0.5 flex h-11 w-11 items-center justify-center ${wished ? 'text-accent' : 'text-ink'}`}
       >
         <HeartIcon filled={wished} />
       </button>
-      {msg && (
-        <p role="status" className="text-xs text-muted">
-          {msg}
-        </p>
-      )}
     </div>
   );
 }

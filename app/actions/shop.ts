@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getViewer, safeNext } from '@/lib/auth';
+import { getCart } from '@/lib/cart';
 import { hasSupabase, NOT_CONFIGURED } from '@/lib/env';
 import { createClient } from '@/lib/supabase/server';
 import type { ActionResult } from '@/lib/types';
@@ -10,7 +11,9 @@ function loginRedirect(next: string): never {
   redirect(`/login?next=${encodeURIComponent(safeNext(next, '/shop'))}`);
 }
 
-export async function addToCart(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
+export type AddResult = (ActionResult & { bag?: { count: number; subtotal: number } }) | null;
+
+export async function addToCart(_prev: AddResult, form: FormData): Promise<AddResult> {
   const next = String(form.get('next') || '/shop');
   if (!hasSupabase) return { ok: false, error: NOT_CONFIGURED };
   const viewer = await getViewer();
@@ -38,7 +41,8 @@ export async function addToCart(_prev: ActionResult | null, form: FormData): Pro
     : await supabase.from('cart_items').insert({ user_id: viewer.id, variant_id: variantId, qty });
   if (error) return { ok: false, error: 'Could not add to your bag. Try again.' };
   revalidatePath('/', 'layout');
-  return { ok: true, message: 'Added to bag' };
+  const bag = await getCart(viewer.id);
+  return { ok: true, message: 'Added to bag', bag: { count: bag.count, subtotal: bag.subtotal } };
 }
 
 export async function setCartQty(itemId: string, qty: number): Promise<ActionResult> {
