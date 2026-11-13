@@ -22,6 +22,8 @@ export interface CardProduct {
   alt: string;
   alt2: string;
   wished: boolean;
+  colours?: { name: string; hex: string | null }[];
+  low?: boolean;
 }
 
 export function ProductCard({ p, sizes = '(max-width: 768px) 50vw, 25vw', priority = false }: { p: CardProduct; sizes?: string; priority?: boolean }) {
@@ -49,7 +51,8 @@ export function ProductCard({ p, sizes = '(max-width: 768px) 50vw, 25vw', priori
               className="object-cover !opacity-0 transition-opacity duration-[250ms] group-hover:!opacity-100"
             />
           )}
-          {p.isNew && !p.soldOut && <span className="label-sm absolute left-3 top-3 text-accent">New</span>}
+          {p.isNew && !p.soldOut && !p.low && <span className="label-sm absolute left-3 top-3 text-accent">New</span>}
+          {p.low && !p.soldOut && <span className="label-sm absolute left-3 top-3 bg-bg/80 px-1.5 py-0.5 text-accent">Few left</span>}
           {p.soldOut && (
             <span className="label-sm absolute inset-x-0 bottom-0 bg-bg/85 p-2.5 text-center">Sold out</span>
           )}
@@ -57,7 +60,17 @@ export function ProductCard({ p, sizes = '(max-width: 768px) 50vw, 25vw', priori
         <div className="flex flex-col gap-0.5 leading-snug">
           <span className="label-sm text-muted">{p.category}</span>
           <span className="text-[15px] font-medium md:text-base">{p.title}</span>
-          <span className="font-semibold">{naira(p.price)}</span>
+          <span className="flex items-center justify-between gap-2">
+            <span className="font-semibold">{naira(p.price)}</span>
+            {p.colours && p.colours.length > 1 && (
+              <span className="flex items-center gap-1" aria-label={`${p.colours.length} colours: ${p.colours.map((c) => c.name).join(', ')}`}>
+                {p.colours.slice(0, 4).map((c) => (
+                  <span key={c.name} className="h-2.5 w-2.5 rounded-full border border-line" style={{ background: c.hex ?? 'transparent' }} />
+                ))}
+                {p.colours.length > 4 && <span className="label-sm text-muted">+{p.colours.length - 4}</span>}
+              </span>
+            )}
+          </span>
         </div>
       </Link>
       <button

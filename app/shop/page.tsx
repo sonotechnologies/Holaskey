@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
 import { getWishIds, toCard } from '@/lib/cards';
+import { searchProducts } from '@/lib/search';
 import { filterProducts, getCategories, getProducts, PRICE_BANDS, type ShopFilters } from '@/lib/catalog';
 import { FilterAside, ShopProvider, ShopResults, ShopToolbar, type FilterGroup } from './ShopControls';
 
@@ -34,13 +35,28 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
   const newOnly = searchParams.new === '1';
   let items = filterProducts(all, f, categories);
   if (newOnly) items = items.filter((p) => p.is_new);
-  if (q) items = items.filter((p) => `${p.title} ${p.category?.name ?? ''} ${p.description}`.toLowerCase().includes(q));
+  if (q) items = searchProducts(items, q);
   const shown = Math.max(PAGE, Number(searchParams.show) || PAGE);
   const visible = items.slice(0, shown);
 
   const sizes = Array.from(new Set(all.flatMap((p) => p.variants.map((v) => v.size))));
   const colourMap = new Map<string, string | null>();
   all.forEach((p) => p.variants.forEach((v) => colourMap.set(v.colour, v.colour_hex)));
+
+  // Facet counts: how many products each option would show, given the other active filters.
+  const EMPTY: ShopFilters = { cats: [], sizes: [], colours: [], price: null, sort: f.sort };
+  const FIELD = { cat: 'cats', size: 'sizes', colour: 'colours', price: 'price' } as const;
+  const scope = (list: typeof all) => {
+    let l = newOnly ? list.filter((p) => p.is_new) : list;
+    if (q) l = searchProducts(l, q);
+    return l;
+  };
+  const baseFor = new Map(
+    (Object.keys(FIELD) as (keyof typeof FIELD)[]).map((k) => [k, scope(filterProducts(all, { ...f, [FIELD[k]]: k === 'price' ? null : [] }, categories))]),
+  );
+  const countFor = (key: keyof typeof FIELD, value: string) =>
+    filterProducts(baseFor.get(key)!, { ...EMPTY, [FIELD[key]]: key === 'price' ? value : [value] }, categories).length;
+  const withCounts = (g: FilterGroup): FilterGroup => ({ ...g, opts: g.opts.map((o) => ({ ...o, count: countFor(g.key as keyof typeof FIELD, o.value) })) });
 
   const groups: FilterGroup[] = [
     {
@@ -56,7 +72,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
     { key: 'size', title: 'Size', opts: sizes.map((s) => ({ value: s, label: s })) },
     { key: 'colour', title: 'Colour', opts: Array.from(colourMap, ([c, hex]) => ({ value: c, label: c, hex })) },
     { key: 'price', title: 'Price', full: true, single: true, opts: PRICE_BANDS.map((b) => ({ value: b.key, label: b.label })) },
-  ];
+  ].map(withCounts);
 
   const labelFor = (key: string, value: string) =>
     groups.find((g) => g.key === key)?.opts.find((o) => o.value === value)?.label ?? value;
@@ -95,11 +111,30 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
               ))}
             </div>
             {!items.length && (
-              <div className="flex flex-col items-start gap-4 py-8">
-                <p className="text-muted">Nothing matches those filters. Remove one to see more.</p>
-                <Link href="/shop" className="btn-secondary">
-                  Clear all filters
-                </Link>
+              <div className="flex flex-col gap-10 py-4">
+                <div className="flex flex-col items-start gap-4">
+                  <p className="text-lg">{q ? `Nothing found for “${q}”.` : 'Nothing matches those filters.'}</p>
+                  <p className="max-w-[52ch] text-muted">Remove a filter to see more — or send us a photo of what you want and we’ll make it in your size.</p>
+                  <div className="flex flex-wrap gap-3">
+                    <Link href="/shop" className="btn-secondary">
+                      Clear all filters
+                    </Link>
+                    <Link href="/custom" className="btn-primary">
+                      Have it made
+                    </Link>
+                  </div>
+                </div>
+                <div>
+                  <h2 className="h2 mb-6">New in</h2>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-4 lg:gap-6">
+                    {all
+                      .filter((p) => p.is_new)
+                      .slice(0, 4)
+                      .map((p) => (
+                        <ProductCard key={p.id} p={toCard(p, wish)} />
+                      ))}
+                  </div>
+                </div>
               </div>
             )}
             {items.length > 0 && (

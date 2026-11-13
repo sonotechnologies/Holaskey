@@ -9,6 +9,7 @@ import { Portal } from '@/components/Portal';
 import { Img, PhotoPlaceholder } from '@/components/Img';
 import { toast } from '@/components/Toaster';
 import { naira } from '@/lib/format';
+import { SizeGuideButton } from './SizeGuideSheet';
 import type { Variant } from '@/lib/types';
 
 // ---------------------------------------------------------------------------
@@ -201,10 +202,11 @@ interface Props {
   shoe: boolean;
   initialVariant?: string;
   whatsapp: string;
+  sizeKind: 'shoes' | 'tops' | 'bottoms';
   accordions: { key: string; title: string; body: string }[];
 }
 
-export function ProductBuy({ productId, slug, title, price, image, variants, wished: initialWish, shoe, initialVariant, whatsapp, accordions }: Props) {
+export function ProductBuy({ productId, slug, title, price, image, variants, wished: initialWish, shoe, initialVariant, whatsapp, sizeKind, accordions }: Props) {
   const colours = useMemo(() => {
     const m = new Map<string, string | null>();
     variants.forEach((v) => m.set(v.colour, v.colour_hex));
@@ -274,9 +276,7 @@ export function ProductBuy({ productId, slug, title, price, image, variants, wis
           <legend className="label">
             Size{selected && <span className="text-muted"> — {selected.size}</span>}
           </legend>
-          <Link href="/size-guide" className="link">
-            Size guide
-          </Link>
+          <SizeGuideButton kind={sizeKind} />
         </div>
         <div className="grid grid-cols-6 gap-2">
           {sizes.map((v) => {
