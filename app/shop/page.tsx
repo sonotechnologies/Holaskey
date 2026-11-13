@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
 import { getWishIds, toCard } from '@/lib/cards';
 import { filterProducts, getCategories, getProducts, PRICE_BANDS, type ShopFilters } from '@/lib/catalog';
-import { FilterPanel, MobileFilters, SortSelect, type FilterGroup } from './ShopControls';
+import { FilterAside, ShopProvider, ShopResults, ShopToolbar, type FilterGroup } from './ShopControls';
 
 type SP = Record<string, string | string[] | undefined>;
 const list = (v: string | string[] | undefined) => (v === undefined ? [] : Array.isArray(v) ? v : v.split(',')).filter(Boolean);
@@ -79,74 +79,44 @@ export default async function ShopPage({ searchParams }: { searchParams: SP }) {
 
   return (
     <main className="wrap pb-16 pt-6 lg:pb-24 lg:pt-12 animate-rise">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <p className="label text-muted">Shop · {count}</p>
-          <h1 className="h1">{title}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <MobileFilters groups={groups} count={count} />
-          <SortSelect value={f.sort} />
-        </div>
+      <div className="mb-2 flex flex-col gap-2">
+        <p className="label text-muted">Shop · {count}</p>
+        <h1 className="h1">{title}</h1>
       </div>
 
-      {chips.length > 0 && (
-        <div className="mb-6 flex flex-wrap items-center gap-2">
-          {chips.map((c) => (
-            <ChipLink key={c.key + c.value} chip={c} sp={searchParams} />
-          ))}
-          <Link href="/shop" className="link px-2">
-            Clear all
-          </Link>
-        </div>
-      )}
-
-      <div className="flex items-start gap-12">
-        <aside className="sticky top-24 hidden w-[220px] flex-none lg:block" aria-label="Filters">
-          <FilterPanel groups={groups} />
-        </aside>
-        <div className="flex min-w-0 flex-1 flex-col gap-10">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-3 lg:gap-6">
-            {visible.map((p, i) => (
-              <ProductCard key={p.id} p={toCard(p, wish)} priority={i < 3} sizes="(max-width:768px) 50vw, 30vw" />
-            ))}
-          </div>
-          {!items.length && <p className="text-muted">Nothing matches those filters. Remove one to see more.</p>}
-          {items.length > 0 && (
-            <div className="flex flex-col items-center gap-3">
-              <span className="label text-muted">
-                Showing {visible.length} of {items.length}
-              </span>
-              {items.length > shown && (
-                <Link href={`/shop?${moreParams}`} scroll={false} className="btn-secondary">
-                  Load more
-                </Link>
-              )}
+      <ShopProvider>
+        <ShopToolbar groups={groups} chips={chips} count={count} />
+        <div className="flex items-start gap-12">
+          <FilterAside groups={groups} />
+          <ShopResults>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-3 lg:gap-6">
+              {visible.map((p, i) => (
+                <ProductCard key={p.id} p={toCard(p, wish)} priority={i < 3} sizes="(max-width:768px) 50vw, 30vw" />
+              ))}
             </div>
-          )}
+            {!items.length && (
+              <div className="flex flex-col items-start gap-4 py-8">
+                <p className="text-muted">Nothing matches those filters. Remove one to see more.</p>
+                <Link href="/shop" className="btn-secondary">
+                  Clear all filters
+                </Link>
+              </div>
+            )}
+            {items.length > 0 && (
+              <div className="flex flex-col items-center gap-3">
+                <span className="label text-muted">
+                  Showing {visible.length} of {items.length}
+                </span>
+                {items.length > shown && (
+                  <Link href={`/shop?${moreParams}`} scroll={false} className="btn-secondary">
+                    Load more
+                  </Link>
+                )}
+              </div>
+            )}
+          </ShopResults>
         </div>
-      </div>
+      </ShopProvider>
     </main>
-  );
-}
-
-function ChipLink({ chip, sp }: { chip: { key: string; value: string; label: string }; sp: SP }) {
-  const params = new URLSearchParams();
-  Object.entries(sp).forEach(([k, v]) => {
-    if (typeof v !== 'string' || k === 'show') return;
-    if (k === chip.key) {
-      const rest = v.split(',').filter((x) => x !== chip.value && x.toLowerCase() !== chip.value);
-      if (rest.length) params.set(k, rest.join(','));
-    } else params.set(k, v);
-  });
-  return (
-    <Link
-      href={`/shop${params.size ? '?' + params : ''}`}
-      aria-label={`Remove filter ${chip.label}`}
-      className="label-sm flex h-9 items-center gap-2.5 border border-ink px-3 text-ink hover:text-ink hover:no-underline"
-    >
-      <span>{chip.label}</span>
-      <span aria-hidden>×</span>
-    </Link>
   );
 }

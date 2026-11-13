@@ -1,96 +1,144 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { startNavProgress } from './NavProgress';
+import { ThemeSwitch } from './ThemeToggle';
 import { CloseIcon, MenuIcon, SearchIcon } from './icons';
 
-const NAV = [
-  { href: '/shop', label: 'Shop', match: (p: string) => p.startsWith('/shop') || p.startsWith('/product') },
-  { href: '/shop?new=1', label: 'New In', match: () => false },
-  { href: '/custom', label: 'Custom', match: (p: string) => p.startsWith('/custom') },
-  { href: '/lookbook', label: 'Lookbook', match: (p: string) => p.startsWith('/lookbook') },
+type Match = (path: string, sp: URLSearchParams) => boolean;
+const NAV: { href: string; label: string; match: Match }[] = [
+  { href: '/shop', label: 'Shop', match: (p, sp) => (p.startsWith('/shop') && sp.get('new') !== '1') || p.startsWith('/product') },
+  { href: '/shop?new=1', label: 'New In', match: (p, sp) => p.startsWith('/shop') && sp.get('new') === '1' },
+  { href: '/custom', label: 'Custom', match: (p) => p.startsWith('/custom') },
+  { href: '/lookbook', label: 'Lookbook', match: (p) => p.startsWith('/lookbook') },
 ];
 
-export function NavLinks() {
+function NavLinksInner() {
   const path = usePathname();
+  const sp = useSearchParams();
   return (
     <nav aria-label="Main" className="hidden gap-8 lg:flex">
-      {NAV.map((n) => (
-        <Link
-          key={n.label}
-          href={n.href}
-          aria-current={n.match(path) ? 'page' : undefined}
-          className={`label ${n.match(path) ? 'text-accent' : 'text-ink'}`}
-        >
-          {n.label}
-        </Link>
-      ))}
+      {NAV.map((n) => {
+        const on = n.match(path, sp);
+        return (
+          <Link
+            key={n.label}
+            href={n.href}
+            aria-current={on ? 'page' : undefined}
+            className={`label relative py-2 hover:no-underline ${on ? 'text-accent' : 'text-ink'} after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-accent after:transition-transform after:duration-200 ${on ? 'after:scale-x-100' : 'after:scale-x-0 hover:after:scale-x-100'}`}
+          >
+            {n.label}
+          </Link>
+        );
+      })}
     </nav>
+  );
+}
+
+export function NavLinks() {
+  return (
+    <Suspense fallback={<nav aria-label="Main" className="hidden gap-8 lg:flex" />}>
+      <NavLinksInner />
+    </Suspense>
+  );
+}
+
+function SearchForm({ onDone, autoFocus, id }: { onDone?: () => void; autoFocus?: boolean; id: string }) {
+  const [q, setQ] = useState('');
+  const router = useRouter();
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (autoFocus) input.current?.focus();
+  }, [autoFocus]);
+  return (
+    <form
+      role="search"
+      className="flex flex-1 items-center gap-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const term = q.trim();
+        onDone?.();
+        startNavProgress();
+        router.push(term ? `/shop?q=${encodeURIComponent(term)}` : '/shop');
+      }}
+    >
+      <SearchIcon />
+      <label htmlFor={id} className="sr-only">
+        Search products
+      </label>
+      <input
+        id={id}
+        ref={input}
+        type="search"
+        enterKeyHint="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search shirts, loafers, denim…"
+        className="h-12 min-w-0 flex-1 bg-transparent text-lg outline-none"
+      />
+    </form>
   );
 }
 
 export function SearchButton() {
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState('');
-  const router = useRouter();
-  const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (open) input.current?.focus();
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [open]);
   return (
     <>
-      <button type="button" aria-label="Search" onClick={() => setOpen(true)} className="flex h-11 w-11 items-center justify-center text-ink hover:text-accent">
+      <button type="button" aria-label="Search" aria-expanded={open} onClick={() => setOpen(true)} className="flex h-11 w-11 items-center justify-center text-ink hover:text-accent">
         <SearchIcon />
       </button>
       {open && (
-        <div className="fixed inset-x-0 top-0 z-50 border-b border-line bg-bg animate-rise">
-          <form
-            role="search"
-            className="wrap flex h-[72px] items-center gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setOpen(false);
-              router.push(`/shop?q=${encodeURIComponent(q.trim())}`);
-            }}
-            onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
-          >
-            <SearchIcon />
-            <label htmlFor="site-search" className="sr-only">
-              Search products
-            </label>
-            <input
-              id="site-search"
-              ref={input}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search shirts, loafers, denim…"
-              className="h-12 flex-1 bg-transparent text-lg outline-none"
-            />
-            <button type="button" aria-label="Close search" onClick={() => setOpen(false)} className="flex h-11 w-11 items-center justify-center">
-              <CloseIcon />
-            </button>
-          </form>
-        </div>
+        <>
+          <button type="button" aria-label="Close search" className="fixed inset-0 z-40 cursor-default bg-bg/60" onClick={() => setOpen(false)} />
+          <div className="fixed inset-x-0 top-0 z-50 border-b border-line bg-bg animate-rise">
+            <div className="wrap flex h-[72px] items-center gap-4">
+              <SearchForm id="site-search" autoFocus onDone={() => setOpen(false)} />
+              <button type="button" aria-label="Close search" onClick={() => setOpen(false)} className="flex h-11 w-11 items-center justify-center">
+                <CloseIcon />
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </>
   );
 }
 
-/** Full-screen dark menu: Shop, New In, Categories (expandable), Custom, Lookbook, Account. Archivo 28 px. */
-export function MobileMenu({ categories, signedIn }: { categories: { name: string; slug: string }[]; signedIn: boolean }) {
+function MobileMenuInner({ categories, signedIn, admin }: { categories: { name: string; slug: string }[]; signedIn: boolean; admin: boolean }) {
   const [open, setOpen] = useState(false);
   const [cats, setCats] = useState(false);
   const path = usePathname();
-  useEffect(() => setOpen(false), [path]);
+  const sp = useSearchParams();
+  const close = () => setOpen(false);
+
+  // Close whenever the URL changes at all (path or query), e.g. Shop → New In.
+  useEffect(() => setOpen(false), [path, sp]);
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
     };
   }, [open]);
 
-  const item = 'flex min-h-16 w-full items-center justify-between border-b border-line font-display text-[28px] font-bold uppercase text-ink hover:text-ink hover:no-underline';
+  const item = (on: boolean) =>
+    `flex min-h-16 w-full items-center justify-between border-b border-line font-display text-[28px] font-bold uppercase hover:no-underline ${on ? 'text-accent hover:text-accent' : 'text-ink hover:text-ink'}`;
+  const links: [string, string, boolean][] = [
+    ['/shop', 'Shop', NAV[0].match(path, sp)],
+    ['/shop?new=1', 'New In', NAV[1].match(path, sp)],
+  ];
+
   return (
     <>
       <button type="button" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)} className="-ml-2.5 flex h-11 w-11 items-center justify-center text-ink">
@@ -98,47 +146,80 @@ export function MobileMenu({ categories, signedIn }: { categories: { name: strin
       </button>
       {open && (
         <div role="dialog" aria-modal="true" aria-label="Menu" className="fixed inset-0 z-50 flex flex-col bg-bg animate-rise">
-          <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center border-b border-line px-4">
-            <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="-ml-2.5 flex h-11 w-11 items-center justify-center text-ink">
+          <div className="grid h-16 flex-none grid-cols-[1fr_auto_1fr] items-center border-b border-line px-4">
+            <button type="button" aria-label="Close menu" onClick={close} autoFocus className="-ml-2.5 flex h-11 w-11 items-center justify-center text-ink">
               <CloseIcon size={24} />
             </button>
-            <Image src="/wordmark-bone.png" alt="HOLASKEY" width={352} height={44} className="logo h-auto w-[104px]" />
+            <Link href="/" onClick={close} aria-label="HOLASKEY home">
+              <Image src="/wordmark-bone.png" alt="HOLASKEY" width={352} height={44} className="logo h-auto w-[104px]" />
+            </Link>
             <span />
           </div>
-          <nav aria-label="Mobile" className="flex-1 overflow-y-auto p-4">
-            <Link href="/shop" className={item}>
-              Shop
-            </Link>
-            <Link href="/shop?new=1" className={item}>
-              New In
-            </Link>
+          <div className="flex-none border-b border-line px-4">
+            <SearchForm id="menu-search" onDone={close} />
+          </div>
+          <nav aria-label="Mobile" className="flex-1 overflow-y-auto px-4 pb-6">
+            {links.map(([href, label, on]) => (
+              <Link key={label} href={href} onClick={close} aria-current={on ? 'page' : undefined} className={item(on)}>
+                {label}
+              </Link>
+            ))}
             <div className="border-b border-line">
-              <button type="button" aria-expanded={cats} onClick={() => setCats(!cats)} className={item.replace('border-b border-line', '')}>
+              <button type="button" aria-expanded={cats} onClick={() => setCats(!cats)} className={item(false).replace('border-b border-line', '')}>
                 <span>Categories</span>
-                <span className="font-mono text-lg font-normal">{cats ? '−' : '+'}</span>
+                <span className="font-mono text-lg font-normal" aria-hidden>
+                  {cats ? '−' : '+'}
+                </span>
               </button>
               {cats && (
-                <div className="flex flex-col pb-4">
-                  {categories.map((c) => (
-                    <Link key={c.slug} href={`/shop?cat=${c.slug}`} className="label flex min-h-11 items-center">
-                      {c.name}
-                    </Link>
-                  ))}
+                <div className="grid grid-cols-2 gap-x-4 pb-4">
+                  {categories.map((c) => {
+                    const on = path.startsWith('/shop') && sp.get('cat') === c.slug;
+                    return (
+                      <Link key={c.slug} href={`/shop?cat=${c.slug}`} onClick={close} className={`label flex min-h-11 items-center ${on ? 'text-accent' : ''}`}>
+                        {c.name}
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </div>
-            <Link href="/custom" className={`${item} !text-accent`}>
+            <Link href="/custom" onClick={close} className={`${item(path.startsWith('/custom'))} !text-accent`}>
               Custom
             </Link>
-            <Link href="/lookbook" className={item}>
+            <Link href="/lookbook" onClick={close} className={item(path.startsWith('/lookbook'))}>
               Lookbook
             </Link>
-            <Link href={signedIn ? '/account' : '/login'} className={item}>
-              {signedIn ? 'Account' : 'Log in'}
+            <Link href={signedIn ? (admin ? '/admin' : '/account') : '/login'} onClick={close} className={item(path.startsWith('/account') || path.startsWith('/admin'))}>
+              {signedIn ? (admin ? 'Admin' : 'Account') : 'Log in'}
             </Link>
+            {signedIn && (
+              <Link href="/account/wishlist" onClick={close} className={item(path.startsWith('/account/wishlist'))}>
+                Wishlist
+              </Link>
+            )}
+            <div className="flex items-center justify-between gap-4 pt-6">
+              <span className="label text-muted">Theme</span>
+              <ThemeSwitch />
+            </div>
           </nav>
         </div>
       )}
     </>
+  );
+}
+
+/** Full-screen dark menu: Shop, New In, Categories (expandable), Custom, Lookbook, Account. Archivo 28 px. */
+export function MobileMenu(props: { categories: { name: string; slug: string }[]; signedIn: boolean; admin: boolean }) {
+  return (
+    <Suspense
+      fallback={
+        <span className="-ml-2.5 flex h-11 w-11 items-center justify-center text-ink">
+          <MenuIcon />
+        </span>
+      }
+    >
+      <MobileMenuInner {...props} />
+    </Suspense>
   );
 }
