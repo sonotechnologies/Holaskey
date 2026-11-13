@@ -1,9 +1,9 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useRef, useState } from 'react';
-import { startNavProgress } from './NavProgress';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { SearchBox } from './SearchBox';
 import { ThemeSwitch } from './ThemeToggle';
 import { CloseIcon, MenuIcon, SearchIcon } from './icons';
 
@@ -45,43 +45,6 @@ export function NavLinks() {
   );
 }
 
-function SearchForm({ onDone, autoFocus, id }: { onDone?: () => void; autoFocus?: boolean; id: string }) {
-  const [q, setQ] = useState('');
-  const router = useRouter();
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (autoFocus) input.current?.focus();
-  }, [autoFocus]);
-  return (
-    <form
-      role="search"
-      className="flex flex-1 items-center gap-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        const term = q.trim();
-        onDone?.();
-        startNavProgress();
-        router.push(term ? `/shop?q=${encodeURIComponent(term)}` : '/shop');
-      }}
-    >
-      <SearchIcon />
-      <label htmlFor={id} className="sr-only">
-        Search products
-      </label>
-      <input
-        id={id}
-        ref={input}
-        type="search"
-        enterKeyHint="search"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search shirts, loafers, denim…"
-        className="h-12 min-w-0 flex-1 bg-transparent text-lg outline-none"
-      />
-    </form>
-  );
-}
-
 export function SearchButton() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -99,9 +62,11 @@ export function SearchButton() {
         <>
           <button type="button" aria-label="Close search" className="fixed inset-0 z-40 cursor-default bg-bg/60" onClick={() => setOpen(false)} />
           <div className="fixed inset-x-0 top-0 z-50 border-b border-line bg-bg animate-rise">
-            <div className="wrap flex h-[72px] items-center gap-4">
-              <SearchForm id="site-search" autoFocus onDone={() => setOpen(false)} />
-              <button type="button" aria-label="Close search" onClick={() => setOpen(false)} className="flex h-11 w-11 items-center justify-center">
+            <div className="wrap flex items-start gap-4 pt-3">
+              <div className="mx-auto w-full max-w-[720px]">
+                <SearchBox autoFocus onDone={() => setOpen(false)} />
+              </div>
+              <button type="button" aria-label="Close search" onClick={() => setOpen(false)} className="flex h-12 w-11 flex-none items-center justify-center">
                 <CloseIcon />
               </button>
             </div>
@@ -156,7 +121,7 @@ function MobileMenuInner({ categories, signedIn, admin }: { categories: { name: 
             <span />
           </div>
           <div className="flex-none border-b border-line px-4">
-            <SearchForm id="menu-search" onDone={close} />
+            <SearchBox onDone={close} />
           </div>
           <nav aria-label="Mobile" className="flex-1 overflow-y-auto px-4 pb-6">
             {links.map(([href, label, on]) => (

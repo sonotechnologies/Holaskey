@@ -9,7 +9,7 @@ export interface FilterGroup {
   title: string;
   full?: boolean;
   single?: boolean;
-  opts: { value: string; label: string; hex?: string | null }[];
+  opts: { value: string; label: string; hex?: string | null; count?: number }[];
 }
 export interface ActiveChip {
   key: string;
@@ -85,16 +85,20 @@ export function FilterPanel({ groups, touch = false }: { groups: FilterGroup[]; 
             <div className="flex flex-wrap gap-1.5">
               {g.opts.map((o) => {
                 const active = on.includes(o.value);
+                const empty = o.count === 0 && !active;
                 return (
                   <button
                     key={o.value}
                     type="button"
                     aria-pressed={active}
+                    disabled={empty}
+                    aria-label={o.count !== undefined ? `${o.label}, ${o.count} ${o.count === 1 ? 'piece' : 'pieces'}` : undefined}
                     onClick={() => toggle(g, o.value)}
-                    className={`chip ${touch ? 'min-h-11' : 'min-h-10'} ${g.full ? 'w-full justify-start text-left' : ''} ${active ? 'chip-on' : ''}`}
+                    className={`chip ${touch ? 'min-h-11' : 'min-h-10'} ${g.full ? 'w-full justify-start text-left' : ''} ${active ? 'chip-on' : ''} ${empty ? 'cursor-not-allowed opacity-35 hover:border-line' : ''}`}
                   >
                     {o.hex !== undefined && <span className="h-3.5 w-3.5 flex-none border border-line" style={{ background: o.hex ?? 'transparent' }} aria-hidden />}
                     <span>{o.label}</span>
+                    {g.full && o.count !== undefined && <span className={`ml-auto font-normal ${active ? 'text-bg/70' : 'text-muted'}`}>{o.count}</span>}
                   </button>
                 );
               })}

@@ -95,6 +95,7 @@ export default async function ProductPage({ params, searchParams }: { params: { 
             image={productImageUrl(p.images[0]?.path)}
             initialVariant={searchParams.v}
             whatsapp={settings.whatsapp}
+            sizeKind={shoe ? 'shoes' : /trouser|cargo|denim|jean/i.test(`${p.category?.name ?? ''} ${p.title}`) ? 'bottoms' : 'tops'}
             variants={p.variants}
             wished={wish.has(p.id)}
             shoe={shoe}

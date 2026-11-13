@@ -35,5 +35,7 @@ export function toCard(p: Product, wish: Set<string>): CardProduct {
     alt: a?.alt || p.title,
     alt2: b?.alt || p.title,
     wished: wish.has(p.id),
+    colours: Array.from(new Map(p.variants.map((v) => [v.colour, v.colour_hex])), ([name, hex]) => ({ name, hex })),
+    low: !isSoldOut(p) && p.variants.reduce((a, v) => a + v.stock, 0) <= 3,
   };
 }
