@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import { Archivo, Bodoni_Moda, IBM_Plex_Mono, Inter } from 'next/font/google';
 import Link from 'next/link';
 import { Footer } from '@/components/Footer';
+import { BackToTop } from '@/components/BackToTop';
 import { Header } from '@/components/Header';
+import { NavProgress } from '@/components/NavProgress';
 import { getSettings } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/env';
 import './globals.css';
@@ -43,6 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
+        <NavProgress />
         <a href="#main" className="label sr-only z-50 bg-ink p-3 text-bg focus:not-sr-only focus:fixed focus:left-2 focus:top-2">
           Skip to content
         </a>
@@ -57,6 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Header />
         <div id="main">{children}</div>
         <Footer />
+        <BackToTop />
       </body>
     </html>
   );

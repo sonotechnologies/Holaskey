@@ -5,6 +5,7 @@ import { getCartCount } from '@/lib/cards';
 import { getCategories } from '@/lib/catalog';
 import { BagIcon, HeartIcon, UserIcon } from './icons';
 import { MobileMenu, NavLinks, SearchButton } from './HeaderClient';
+import { ThemeIconButton } from './ThemeToggle';
 
 /** 72 px desktop / 64 px mobile, logo small and centred, 1 px rule at the bottom. */
 export async function Header() {
@@ -14,7 +15,7 @@ export async function Header() {
       <div className="wrap grid h-16 grid-cols-[1fr_auto_1fr] items-center lg:h-[72px]">
         <div className="flex items-center">
           <div className="lg:hidden">
-            <MobileMenu categories={categories.map((c) => ({ name: c.name, slug: c.slug }))} signedIn={!!viewer} />
+            <MobileMenu categories={categories.map((c) => ({ name: c.name, slug: c.slug }))} signedIn={!!viewer} admin={viewer?.role === 'admin'} />
           </div>
           <NavLinks />
         </div>
@@ -31,6 +32,7 @@ export async function Header() {
         <div className="-mr-2.5 flex items-center justify-end gap-1">
           <div className="hidden items-center gap-1 lg:flex">
             <SearchButton />
+            <ThemeIconButton />
             <Link href="/account/wishlist" aria-label="Wishlist" className="flex h-11 w-11 items-center justify-center text-ink hover:text-accent">
               <HeartIcon />
             </Link>
@@ -42,6 +44,7 @@ export async function Header() {
               <UserIcon />
             </Link>
           </div>
+          <ThemeIconButton className="lg:hidden" />
           <Link
             href="/cart"
             aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}
