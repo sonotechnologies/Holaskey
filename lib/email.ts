@@ -1,17 +1,53 @@
 import 'server-only';
+import nodemailer, { type Transporter } from 'nodemailer';
 import { Resend } from 'resend';
 import { SITE_URL } from './env';
 import { naira } from './format';
 
-const FROM = process.env.EMAIL_FROM || 'HOLASKEY <orders@holaskey.com>';
+/*
+ * Email goes out through whichever is configured:
+ *  1. SMTP (SMTP_HOST/SMTP_USER/SMTP_PASS) — e.g. Gmail with an app password (free, ~500/day,
+ *     no domain needed), Brevo, Zoho, or Resend's SMTP.
+ *  2. Resend API (RESEND_API_KEY).
+ * With neither set, emails are skipped and logged.
+ */
+const SMTP_USER = process.env.SMTP_USER || '';
+const FROM = process.env.EMAIL_FROM || (SMTP_USER ? `HOLASKEY <${SMTP_USER}>` : 'HOLASKEY <orders@holaskey.com>');
 export const OWNER_EMAIL = process.env.OWNER_EMAIL || '';
 
+let smtp: Transporter | null = null;
+function smtpClient() {
+  if (!process.env.SMTP_HOST || !SMTP_USER || !process.env.SMTP_PASS) return null;
+  if (!smtp) {
+    const port = Number(process.env.SMTP_PORT || 465);
+    smtp = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: port === 465,
+      auth: { user: SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+  }
+  return smtp;
+}
+
 let resend: Resend | null = null;
-function client() {
+function resendClient() {
   if (!process.env.RESEND_API_KEY) return null;
   if (!resend) resend = new Resend(process.env.RESEND_API_KEY);
   return resend;
 }
+
+/** Plain-text fallback so the email isn't marked as spam for being HTML-only. */
+const toText = (html: string) =>
+  html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<a [^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '$2: $1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s+/g, '\n')
+    .trim();
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
@@ -33,14 +69,20 @@ ${cta}
 }
 
 async function send(to: string | string[], subject: string, html: string) {
-  const c = client();
   const list = (Array.isArray(to) ? to : [to]).filter(Boolean);
-  if (!c || !list.length) {
-    console.info(`[email skipped] ${subject} → ${list.join(', ') || '(no recipient)'}`);
-    return;
-  }
+  if (!list.length) return;
   try {
-    await c.emails.send({ from: FROM, to: list, subject, html });
+    const m = smtpClient();
+    if (m) {
+      await m.sendMail({ from: FROM, to: list.join(', '), subject, html, text: toText(html) });
+      return;
+    }
+    const r = resendClient();
+    if (r) {
+      await r.emails.send({ from: FROM, to: list, subject, html, text: toText(html) });
+      return;
+    }
+    console.info(`[email skipped — no SMTP or Resend configured] ${subject} → ${list.join(', ')}`);
   } catch (e) {
     console.error('[email failed]', subject, e);
   }
@@ -183,3 +225,32 @@ export const emails = {
     );
   },
 };
+
+/** Admin "Send test email": reports exactly what happened instead of failing silently. */
+export async function sendTestEmail(to: string): Promise<{ ok: true; via: string } | { ok: false; error: string }> {
+  const html = layout({
+    heading: 'Email works.',
+    body: 'This is a test from your HOLASKEY admin. Order confirmations, quotes and status updates will look like this.',
+    cta: { label: 'Open the shop', href: SITE_URL },
+  });
+  try {
+    const m = smtpClient();
+    if (m) {
+      await m.verify();
+      await m.sendMail({ from: FROM, to, subject: 'HOLASKEY test email', html, text: toText(html) });
+      return { ok: true, via: `SMTP (${process.env.SMTP_HOST})` };
+    }
+    const r = resendClient();
+    if (r) {
+      const res = await r.emails.send({ from: FROM, to: [to], subject: 'HOLASKEY test email', html, text: toText(html) });
+      if (res.error) return { ok: false, error: res.error.message };
+      return { ok: true, via: 'Resend' };
+    }
+    return { ok: false, error: 'No email service is set up. Add SMTP_HOST, SMTP_USER and SMTP_PASS in Vercel, then redeploy.' };
+  } catch (e) {
+    const msg = (e as Error).message || 'Unknown error';
+    if (/Invalid login|Username and Password not accepted|535/i.test(msg))
+      return { ok: false, error: 'The email login was rejected. For Gmail, SMTP_PASS must be a 16-letter app password, not your normal password.' };
+    return { ok: false, error: msg };
+  }
+}

@@ -3,7 +3,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getViewer } from '@/lib/auth';
-import { emails } from '@/lib/email';
+import { emails, sendTestEmail } from '@/lib/email';
 import { CUSTOM_STATUS_LABEL, formatDate, parseNaira, slugify } from '@/lib/format';
 import { userEmail } from '@/lib/payments';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
@@ -285,4 +285,10 @@ export async function runExpiry(): Promise<ActionResult> {
   await createServiceClient().rpc('expire_stale');
   revalidatePath('/admin');
   return { ok: true, message: 'Expired stale orders and quotes.' };
+}
+
+export async function sendTestEmailAction(): Promise<ActionResult> {
+  const { v } = await admin();
+  const r = await sendTestEmail(v.email);
+  return r.ok ? { ok: true, message: `Sent to ${v.email} via ${r.via}. Check the inbox (and spam the first time).` } : { ok: false, error: r.error };
 }
