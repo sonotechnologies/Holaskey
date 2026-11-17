@@ -22,7 +22,7 @@ Without Supabase keys the site still runs. It shows the sample catalogue from `l
 3. **Auth → Providers:** turn on Email (with "Confirm email") and Google. For Google, add the OAuth client ID and secret from Google Cloud.
 4. **Auth → URL configuration:** set Site URL to your domain. Add `https://<domain>/auth/callback` (and `http://localhost:3000/auth/callback`) to the redirect URLs.
 5. **Auth → Email templates:** paste the branded templates from `supabase/templates/`.
-6. **Auth → SMTP:** use Resend's SMTP (`smtp.resend.com`, user `resend`, password = your Resend API key) so auth emails come from your domain.
+6. **Auth → SMTP:** use the same SMTP as the site (e.g. Gmail: host `smtp.gmail.com`, port `465`, user = your Gmail, password = a Gmail app password) so sign-up and reset emails are reliable.
 7. **Make the owner an admin:** after the owner signs up, run
    `update profiles set role = 'admin' where email = 'owner@example.com';`
 
@@ -40,7 +40,9 @@ Without Supabase keys the site still runs. It shows the sample catalogue from `l
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase project (the legacy `..._ANON_KEY` name also works) |
 | `SUPABASE_SECRET_KEY` | Server only: webhook, order creation, checked state changes (legacy `SUPABASE_SERVICE_ROLE_KEY` also works) |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`, `PAYSTACK_SECRET_KEY` | Paystack |
-| `RESEND_API_KEY`, `EMAIL_FROM`, `OWNER_EMAIL` | Transactional email; the owner gets new-order and new-request alerts |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Email via SMTP, e.g. Gmail with an app password (free, ~500/day, no domain needed) |
+| `RESEND_API_KEY` | Alternative to SMTP: email via Resend's API |
+| `EMAIL_FROM`, `OWNER_EMAIL` | Sender name/address shown to customers; owner gets new-order and new-request alerts |
 | `CRON_SECRET` | Protects `/api/cron/daily` (Vercel Cron sends it automatically) |
 
 ## Deploy (Vercel)

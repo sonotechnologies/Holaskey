@@ -1,6 +1,7 @@
 'use client';
 import { useFormState } from 'react-dom';
-import { saveSettings } from '@/app/actions/admin';
+import { useState, useTransition } from 'react';
+import { saveSettings, sendTestEmailAction } from '@/app/actions/admin';
 import { Field, FormError, FormNote, TextArea } from '@/components/Field';
 import { Submit } from '@/components/Submit';
 
@@ -29,5 +30,32 @@ export function SettingsForm({ s }: { s: any }) {
         </div>
       </div>
     </form>
+  );
+}
+
+export function TestEmail() {
+  const [pending, start] = useTransition();
+  const [res, setRes] = useState<{ ok: boolean; text: string } | null>(null);
+  return (
+    <section className="flex max-w-[720px] flex-col gap-3 border-t border-line pt-8">
+      <h2 className="h2">Email</h2>
+      <p className="text-muted">Sends a test email to your admin address using the email settings in Vercel.</p>
+      <div>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            start(async () => {
+              const r = await sendTestEmailAction();
+              setRes(r.ok ? { ok: true, text: r.message ?? 'Sent.' } : { ok: false, text: r.error });
+            })
+          }
+          className="btn-secondary"
+        >
+          {pending ? 'Sending…' : 'Send test email'}
+        </button>
+      </div>
+      {res && (res.ok ? <FormNote>{res.text}</FormNote> : <FormError>{res.text}</FormError>)}
+    </section>
   );
 }
